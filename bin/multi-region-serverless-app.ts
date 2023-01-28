@@ -1,21 +1,61 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
-import * as cdk from 'aws-cdk-lib';
-import { MultiRegionServerlessAppStack } from '../lib/multi-region-serverless-app-stack';
+import "source-map-support/register";
+import * as cdk from "aws-cdk-lib";
+import { ServerlessAppStack } from "../lib/serverless-app-stack";
+import { GlobalStack } from "../lib/global-stack";
 
 const app = new cdk.App();
-new MultiRegionServerlessAppStack(app, 'MultiRegionServerlessAppStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+const REGION_1 = process.env.REGION_1!;
+const REGION_2 = process.env.REGION_2!;
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+const ACCOUNT_ID = process.env.ACCOUNT_ID;
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+const DOMAIN_NAME = process.env.DOMAIN_NAME!;
+
+const appStackRegion1 = new ServerlessAppStack(
+  app,
+  "MultiRegionServerlessAppStack-region-1",
+  {
+    env: {
+      account: ACCOUNT_ID,
+      region: REGION_1,
+    },
+    domainName: DOMAIN_NAME,
+    crossRegionReferences: true,
+  }
+);
+
+const appStackRegion2 = new ServerlessAppStack(
+  app,
+  "MultiRegionServerlessAppStack-region-2",
+  {
+    env: {
+      account: ACCOUNT_ID,
+      region: REGION_2,
+    },
+    domainName: DOMAIN_NAME,
+    crossRegionReferences: true,
+  }
+);
+
+new GlobalStack(app, "GlobalStack", {
+  env: {
+    account: ACCOUNT_ID,
+    region: "us-east-1",
+  },
+  domainName: DOMAIN_NAME,
+  apis: [
+    {
+      apiDomainName: appStackRegion1.apiDomainName,
+      apiGateway: appStackRegion1.api,
+      region: REGION_1,
+    },
+    {
+      apiDomainName: appStackRegion2.apiDomainName,
+      apiGateway: appStackRegion2.api,
+      region: REGION_2,
+    },
+  ],
+  crossRegionReferences: true,
 });
