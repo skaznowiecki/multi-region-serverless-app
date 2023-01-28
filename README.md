@@ -6,7 +6,7 @@ In this case, we have a dynamodb table in us-east-1 and us-west-2 regions. We wa
 
 # Architecture
 
-![Architecture](https://github.com/skaznowiecki/dynamodb-eventbridge-pipe/blob/main/assets/architecture.png)
+![Architecture](https://github.com/skaznowiecki/multi-region-serverless-app/blob/main/assets/architecture.png)
 
 # Step to deploy
 
